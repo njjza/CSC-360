@@ -1,24 +1,6 @@
 #include "PMan.h"
 
-/**
- * Function Name: CommandParser
- * Input		: char* cmd, char* result_buffer
- * Return		: enum CMD_TYPE
- * Description	: This function is used to print the std messages to the stdout.
- * 				  Read & Parse the input from stdin and determine the proper command
- * 				  type to return.
-**/
-enum CMD_TYPE CommandParser(char* cmd, char* result_buffer) {
-	
-	for(int i = 0; i < strlen(cmd); i++) {
-
-	}
-
-	return TEST;
-}
-
-void bg_entry(char **argv){
-	
+void bg_entry(char** argv){
 	pid_t pid;
 	pid = fork();
 	if(pid == 0){
@@ -48,7 +30,7 @@ void pstat_entry(int pid) {
 
 }
 
-void check_zombieProcess(int headPnode){
+void check_zombieProcess(int* headPnode){
 	int status;
 	int retVal = 0;
 	
