@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder, int *size_holder);
+void FreeDArray(char ** ptr, size_t size);
 
 int main (void) {
     char **argv, *cmd;
@@ -39,8 +40,8 @@ int main (void) {
                 //pstat_entry(pid);
                 break;
         }
-		
-		//check_zombieProcess();
+
+        FreeDArray(argv, len);
 		printf("\n");
 	}
 
@@ -77,21 +78,15 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder, int *size_h
 
     str_holder = malloc(sizeof(char*) * 1);
     *string_vector_holder = str_holder;
-    str_holder_tmp = (char*) malloc(strlen(str_tmp) * sizeof(char));
-    str_holder_tmp = strcpy(str_holder_tmp, str_tmp);
-    str_holder[0] = str_holder_tmp;
+    str_holder[0] = str_tmp;
 
     *size_holder = 1;
     str_tmp = strtok(NULL, " ");
 
     while(str_tmp != NULL) {
         str_holder = realloc(str_holder, sizeof(char*) * (i + 1));
-        str_holder_tmp = (char*) malloc(strlen(str_tmp) * sizeof(char));
 
-        str_holder_tmp = str_tmp;
-        strncpy(str_holder_tmp, str_tmp, strlen(str_tmp));
-        str_holder[i++] = str_holder_tmp;
-
+        str_holder[i++] = str_tmp;
         *string_vector_holder = str_holder;
         *size_holder = i;
         str_tmp = strtok(NULL, " ");
@@ -102,4 +97,16 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder, int *size_h
     printf("command is in incorrect format");
     return type;
     // a long list of if-else branches crumpled together to save space.
+}
+
+/**
+ * Function Name: FreeDArray
+ * Input		: void** ptr, size_t size
+ * Return		: void
+ * Description	: This function is used to free all memories that
+ *                the input DArray has associated to;
+**/
+void FreeDArray(char ** ptr, size_t size) {
+    free(ptr);
+    ptr = NULL;
 }
