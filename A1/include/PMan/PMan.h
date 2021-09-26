@@ -12,10 +12,10 @@
 enum CMD_TYPE {CMD_BG, CMD_BGCONT, CMD_BGKILL, CMD_BGLIST, CMD_BGSTOP, CMD_PSTAT, UNRECOGNIZABLE};
 
 // provided functions - required to complete this assignment
-void bg_entry(char** argv, struct LinkedList *li);
+void bg_entry(char** argv, struct LinkedList **li);
 void bglist_entry();
 void bgsig_entry(int pid, enum CMD_TYPE cmd_type, struct LinkedList *li);
 void pstat_entry(int pid, struct LinkedList *li);
-void check_zombieProcess(int* headPnode);
+void check_zombieProcess(struct Node *headPnode);
 
 #endif

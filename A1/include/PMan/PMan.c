@@ -1,21 +1,23 @@
 #include "PMan.h"
 
-void bg_entry(char** argv, struct LinkedList *li){
+void bg_entry(char** argv, struct LinkedList **li){
 	pid_t pid;
-	
 	pid = fork();
+
 	if(pid == 0){
 		if(execvp(argv[0], argv) < 0){
 			perror("Error on execvp");
 		}
-		
-		li = LinkedListInitializer(pid, argv[0]);
 		exit(EXIT_SUCCESS);
 	}
 	else if(pid > 0) {
-		struct Node* n = NodeInitializer(pid, argv[0]);
-		AddFront(li, n);
+		if(*li == NULL) {
+			*li = LinkedListInitializer(pid, argv);
+		}
+		
 		// store information of the background child process in your data structures
+		struct Node* n = NodeInitializer(pid, argv);
+		AddBack(*li, n);
 	}
 	else {
 		perror("fork failed");
@@ -56,7 +58,7 @@ void pstat_entry(int pid, struct LinkedList *li) {
 	PrintNode(n);
 }
 
-void check_zombieProcess(int* headPnode){
+void check_zombieProcess(struct Node *headPnode){
 	int status;
 	int retVal = 0;
 	

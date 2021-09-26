@@ -1,24 +1,22 @@
 #include "LinkedList.h"
 
-struct Node *NodeInitializer(int val, char* str) {
+struct Node *NodeInitializer(int val, char** str_vec) {
     struct Node *node = (struct Node *) malloc(sizeof(struct Node));
     node->next = NULL;
     node->prev = NULL;
 
     node->val = val;
-    node->fileDirectory = str;
+    node->fileDirectory = str_vec;
     return node;
 }
 
-struct LinkedList* LinkedListInitializer(int val, char* str)
+struct LinkedList* LinkedListInitializer(int val, char** str_vec)
 {
-    struct Node* head = NodeInitializer(val, str);
+    struct Node* node = NodeInitializer(val, str_vec);
     struct LinkedList* list = (struct LinkedList*) malloc(sizeof(struct LinkedList));
 
-    head->val = val;
-    head->fileDirectory = str;
-    list->head = head;
-
+    list->head = node;
+    list->end = node;
     return list;
 }
 
@@ -62,5 +60,5 @@ void PrintLinkedList(struct LinkedList *li){
 }
 
 void PrintNode(struct Node *node) {
-    printf("%d, %s, %d", node->val, node->fileDirectory, node->state);
+    printf("%d, %s, %d", node->val, node->fileDirectory[0], node->state);
 }
