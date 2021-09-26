@@ -1,15 +1,20 @@
 #include "PMan.h"
 
-void bg_entry(char** argv){
+void bg_entry(char** argv, struct LinkedList *li){
 	pid_t pid;
+	
 	pid = fork();
 	if(pid == 0){
 		if(execvp(argv[0], argv) < 0){
 			perror("Error on execvp");
 		}
+		
+		li = LinkedListInitializer(pid, argv[0]);
 		exit(EXIT_SUCCESS);
 	}
 	else if(pid > 0) {
+		struct Node* n = NodeInitializer(pid, argv[0]);
+		AddFront(li, n);
 		// store information of the background child process in your data structures
 	}
 	else {
@@ -18,16 +23,37 @@ void bg_entry(char** argv){
 	}
 }
 
-void bglist_entry() {
-
+void bglist_entry(struct LinkedList* li) {
+	PrintLinkedList(li);
 }
 
-void bgsig_entry(int pid, enum CMD_TYPE cmd_type) {
+void bgsig_entry(int pid, enum CMD_TYPE cmd_type, struct LinkedList *li) {
+	
+	struct Node* n = FindNode(li, pid);
 
+	switch (cmd_type) {
+		case CMD_BGKILL:
+			n->state = TERM;
+			break;
+		case CMD_BGSTOP:
+			n->state = STOP;
+			break;
+		case CMD_BGCONT:
+			n->state = CONT;
+			break;
+		
+		//to supress -Wall warning
+		case CMD_BG:
+		case CMD_BGLIST:
+		case CMD_PSTAT:
+		case UNRECOGNIZABLE:
+			break;
+	}
 }
 
-void pstat_entry(int pid) {
-
+void pstat_entry(int pid, struct LinkedList *li) {
+	struct Node* n = FindNode(li, pid);
+	PrintNode(n);
 }
 
 void check_zombieProcess(int* headPnode){
