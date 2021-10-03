@@ -1,6 +1,8 @@
 #include "LinkedList.h"
 
 struct Node *NodeInitializer(int val, char *f) {
+    if(f == NULL) {f = "(nil)";}
+
     struct Node *node = (struct Node *) malloc(sizeof(struct Node));
     node->next = NULL;
     node->prev = NULL;
@@ -11,6 +13,8 @@ struct Node *NodeInitializer(int val, char *f) {
 }
 struct LinkedList* LinkedListInitializer(int val, char *f)
 {
+    if(f == NULL) {f = "(nil)";}
+
     struct Node* node = NodeInitializer(val, f);
     struct LinkedList* list = (struct LinkedList*) malloc(sizeof(struct LinkedList));
 
@@ -22,6 +26,8 @@ struct LinkedList* LinkedListInitializer(int val, char *f)
 
 void AddFront(struct LinkedList *list, struct Node* node)
 {
+    if(list == NULL || node == NULL) {return ;}
+
     node->next = list->head;
     list->head->prev = node;
     list->head = node;
@@ -29,6 +35,8 @@ void AddFront(struct LinkedList *list, struct Node* node)
 }
 
 void AddBack(struct LinkedList *list, struct Node* node) {
+    if(list == NULL || node == NULL) {return ;}
+
     node->prev = list->end;
     list->end->next = node;
     list->end = node;
@@ -37,6 +45,8 @@ void AddBack(struct LinkedList *list, struct Node* node) {
 
 struct Node* FindNode(struct LinkedList *list, int n)
 {
+    if (list == NULL) {return;}
+
     struct Node* node_tmp = list->head;
 
     while(node_tmp != NULL) {
@@ -51,9 +61,11 @@ struct Node* FindNode(struct LinkedList *list, int n)
 }
 
 void DeleteNode(struct Node *n, struct LinkedList **li) {
-    struct LinkedList *li_tmp = *li;
+    if (n == NULL || *li == NULL) {return;}
 
+    struct LinkedList *li_tmp = *li;
     li_tmp->size = li_tmp->size - 1;
+
     if(li_tmp->size == 0) {
         free(n);
         free(*li);
@@ -61,18 +73,22 @@ void DeleteNode(struct Node *n, struct LinkedList **li) {
         return;
     }
 
-    if(li_tmp->head == n) {
+    if(li_tmp->head->val == n->val) {
         li_tmp->head = n->next;
+        n->next->prev = NULL;
+        goto DeleteNode_end;
     }
     
-    if(n->next != NULL) {
-        n->next->prev = n->prev;
+    else if(li_tmp->end->val == n->val) {
+        li_tmp->end = n->prev;
+        n->prev->next = NULL;
+        goto DeleteNode_end;
     }
 
-    if(n->prev != NULL) {
-        n->prev->next = n->next;
-    }
+    n->next->prev = n->prev;
+    n->prev->next = n->next;
     
+    DeleteNode_end:
     free(n);
 }
 
@@ -84,19 +100,29 @@ void PrintLinkedList(struct LinkedList *li){
 
     int len = li->size;
     struct Node* n = li->head;
-    for (int i = 0; i < len; i++) {
+    
+    while (n != NULL) {
         PrintNode(n);
-        n = n -> next;
+        n = n->next;
     }
 }
 
 void PrintNode(struct Node *node) {
+    if (node == NULL) {printf("emptry node error\n"); return;}
+
     int pid = node->val;
     ssize_t len, alloclen = 128;
+
+    printf("not failed\t");
     char path[MAX_INT_STR_LENGTH], *cwd;
-    
     sprintf(path, "/proc/%d/cwd", pid);
-    
+    printf("not failed after sprintf\t");
+
+    if (fopen(path, "r") == NULL) {
+        printf("%d: %s\n", pid, node->name);
+        return;
+    }
+
     cwd = malloc(alloclen);
     while((len = readlink(path, cwd, alloclen)) == alloclen) {
         alloclen *= 2;

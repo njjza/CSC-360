@@ -2,15 +2,30 @@
 
 void bg_entry(char** argv, struct LinkedList **li){
 	pid_t pid;
-	char *tmp = (char *) malloc(strlen(&argv[0][1]));
-	strcpy(tmp, &argv[0][1]);
+	char * tmp, c;
+
+	c = argv[0][0];
+	if (c == '.') {
+		tmp = (char *) malloc(strlen(&argv[0][1]) * sizeof(char));
+		strcpy(tmp, &argv[0][1]);
+	}
+	else if (c == '/') {
+		char *_tmp = strrchr(argv[0], '/');
+		tmp = (char *) malloc(strlen(_tmp) * sizeof(char));
+		strcpy(tmp, _tmp);
+	}
+	else {
+		tmp = (char *) malloc(strlen(argv[0]) * sizeof(char));
+		strcpy(tmp, argv[0]);
+	}
 
 	pid = fork();
 	if(pid == 0){
 		if(execvp(argv[0], argv) < 0){
 			perror("Error on execvp");
+			exit(EXIT_FAILURE);
 		}
-		printf("PMan: > ");
+	
 		exit(EXIT_SUCCESS);
 	}
 	else if(pid > 0) {
@@ -111,23 +126,24 @@ void pstat_entry(int pid) {
 void check_zombieProcess(struct LinkedList **list){
 	int status, retVal = 0;
 	struct Node *headPnode, *headPnode_tmp;
-	usleep(2000);
+	usleep(1000);
 
-	if (list == NULL) {return;}
+	if (*list == NULL) {
+		return;
+	}
+
 	headPnode = (*list)->head;
-
 	while(headPnode != NULL) {
 		headPnode_tmp = headPnode->next;
+		retVal = waitpid(headPnode->val, &status, WNOHANG);
 
-		retVal = waitpid(-1, &status, WNOHANG);
-		if(retVal > 0) {
-			//remove your background process from datastructure
+		if (retVal > 0) {
 			DeleteNode(headPnode, list);
 		}
-		else if(retVal == 0){
-			break;
-		} 
-		else{
+		else if (retVal == 0) {
+			;
+		}
+		else {
 			perror("waitpid failed");
 			exit(EXIT_FAILURE);
 		}

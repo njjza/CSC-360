@@ -38,8 +38,14 @@ int main (void) {
                 pid = atoi(argv[0]);
                 pstat_entry(pid);
                 break;
+
+            case UNRECOGNIZABLE:
+                goto end;
+                continue;
         }
+
         FreeDArray(&argv);
+
         end:
         check_zombieProcess(&li);
 	}
@@ -73,7 +79,7 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder) {
     }
 
     enum CMD_TYPE type;
-    char **str_holder, *str_holder_tmp, *str_tmp;
+    char **str_holder = NULL, *str_holder_tmp, *str_tmp;
     int i = 1, size = 1;
 
     //retrieve and analysis command from input
@@ -106,6 +112,10 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder) {
 
     incorrect_format:
     printf("PMan: > command is in incorrect format\n");
+    
+    if(str_holder != NULL) {
+        FreeDArray(&str_holder);
+    }
     return UNRECOGNIZABLE;
     // a long list of if-else branches crumpled together to save space.
 }

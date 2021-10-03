@@ -19,7 +19,7 @@ struct Node
 struct LinkedList
 {
     struct Node *head, *end;
-    int size;
+    unsigned int size;
 };
 
 struct LinkedList* LinkedListInitializer(int val, char *f);
