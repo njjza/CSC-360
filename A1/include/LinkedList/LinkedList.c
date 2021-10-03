@@ -45,10 +45,9 @@ void AddBack(struct LinkedList *list, struct Node* node) {
 
 struct Node* FindNode(struct LinkedList *list, int n)
 {
-    if (list == NULL) {return;}
+    if (list == NULL) {return NULL;}
 
     struct Node* node_tmp = list->head;
-
     while(node_tmp != NULL) {
         if(node_tmp->val == n) {
             return node_tmp;
