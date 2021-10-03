@@ -4,6 +4,8 @@ void bg_entry(char** argv, struct LinkedList **li){
 	pid_t pid;
 	char * tmp, c;
 
+	if (argv == NULL || *li == NULL) {return;}
+	
 	c = argv[0][0];
 	if (c == '.') {
 		tmp = (char *) malloc(strlen(&argv[0][1]) * sizeof(char));

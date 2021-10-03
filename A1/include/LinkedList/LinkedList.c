@@ -98,9 +98,7 @@ void PrintLinkedList(struct LinkedList *li){
         return;
     }
 
-    int len = li->size;
-    struct Node* n = li->head;
-    
+    struct Node* n = li->head;    
     while (n != NULL) {
         PrintNode(n);
         n = n->next;
