@@ -9,7 +9,7 @@ LinkedList:
 	gcc -Wall $(LL_src) -c -o ./bin/LinkedList.o -g
 
 PMan: LinkedList $(LL_h)
-	gcc -Wall $(PMan_src) -c -DDEBUG -o ./bin/PMan.o -g
+	gcc -Wall $(PMan_src) -std=gnu90 -c -DDEBUG -o ./bin/PMan.o -g
 
 Main: $(PMan_h)
 	gcc -c ./main.c -DDEBUG -o ./bin/main.o -g
