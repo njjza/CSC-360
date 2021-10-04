@@ -92,7 +92,7 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder) {
 
     str_holder = malloc(sizeof(char*) * 1);
     str_holder[0] = str_tmp;
-
+    
     str_tmp = strtok(NULL, " ");
     while(str_tmp != NULL) {
         Realloc(str_holder, size, i);
@@ -105,13 +105,13 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder) {
     if(i > 1 && a) {goto incorrect_format;}
 
     Realloc(str_holder, size, i);
-    str_holder[i++] = NULL;
+    str_holder[i] = NULL;
 
     *string_vector_holder = str_holder;
     return type;
 
     incorrect_format:
-    printf("PMan: > command is in incorrect format\n");
+    printf("command is in incorrect format\n");
     
     if(str_holder != NULL) {
         FreeDArray(&str_holder);

@@ -2,9 +2,9 @@
 
 void bg_entry(char** argv, struct LinkedList **li){
 	pid_t pid;
-	char * tmp, c;
+	char *tmp, c;
 
-	if (argv == NULL || *li == NULL) {return;}
+	if (argv == NULL) {return;}
 	
 	c = argv[0][0];
 	if (c == '.') {
@@ -21,6 +21,7 @@ void bg_entry(char** argv, struct LinkedList **li){
 		strcpy(tmp, argv[0]);
 	}
 
+	
 	pid = fork();
 	if(pid == 0){
 		if(execvp(argv[0], argv) < 0){
@@ -112,10 +113,10 @@ void pstat_entry(int pid) {
 	float utime, stime;
 
 	fscanf(
-		f, "%d %s %c %d %d %d %d %d %u %lu %lu %lu %lu %f %f %ld %ld %ld %ld %ld %ld %llu, %lu %ld",
-		&unused, comm, &state, &ppid,&pgroup,&session,&tty_nr,&tpgid,&flags,
+		f, "%d %s %c %d %d %d %d %d %u %lu %lu %lu %lu %f %f %ld %ld %ld %ld %ld %ld %llu %lu %ld",
+		&unused, comm, &state, &ppid, &pgroup, &session,&tty_nr,&tpgid,&flags,
 		&minflt,&cminflt,&mafflt,&cmajflt,&utime,&stime, &cutime,&cstime,
-		&priority,&nice,&num_threads,&itrealvalue,&starttime,&vsize,&rss
+		&priority,&nice,&num_threads,&itrealvalue, &starttime, &vsize, &rss
 	);
 	fscanf(f, "voluntary_ctxt_switches:%d",&vol);
     fscanf(f, "nonvoluntary_ctxt_switches:%d", &nonvol);
