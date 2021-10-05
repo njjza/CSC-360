@@ -41,7 +41,7 @@ int main (void) {
 
             case UNRECOGNIZABLE:
                 goto end;
-                continue;
+                break;
         }
 
         FreeDArray(&argv);
@@ -117,7 +117,6 @@ enum CMD_TYPE CommandParser(char* cmd, char*** string_vector_holder) {
         FreeDArray(&str_holder);
     }
     return UNRECOGNIZABLE;
-    // a long list of if-else branches crumpled together to save space.
 }
 
 /**

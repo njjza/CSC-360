@@ -93,7 +93,7 @@ void DeleteNode(struct Node *n, struct LinkedList **li) {
 
 void PrintLinkedList(struct LinkedList *li){
     if(li == NULL) {
-        printf("PMan: > Empty Process List\n");
+        printf("Empty Process List\n");
         return;
     }
 
@@ -110,10 +110,8 @@ void PrintNode(struct Node *node) {
     int pid = node->val;
     ssize_t len, alloclen = 128;
 
-    printf("not failed\t");
     char path[MAX_INT_STR_LENGTH], *cwd;
     sprintf(path, "/proc/%d/cwd", pid);
-    printf("not failed after sprintf\t");
 
     if (fopen(path, "r") == NULL) {
         printf("%d: %s\n", pid, node->name);
