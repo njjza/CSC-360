@@ -2,7 +2,7 @@
 #define QUEUE_H
 
 #include <stddef.h>
-
+#include "Clerk.h"
 struct Node {
     void *val;
     struct Node *next;
@@ -15,10 +15,10 @@ struct Queue {
 };
 
 struct Node * NodeFactory(void *val);
-struct Queue * QueueFactory(void *val);
+struct Queue * QueueFactory();
 
-void QueueInsert(void *val, struct Queue *queue);
+void QueueAdd(void *val, struct Queue *queue);
 struct Node * QueuePop(struct Queue * queue);
 struct Node * QueuePeek(struct Queue * queue);
-
+int QueueSize(struct Queue * queue);
 #endif
