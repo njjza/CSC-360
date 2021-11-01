@@ -14,7 +14,7 @@ struct Customer * CustomerFactory(  int id, int class, double arrival_time,
 }
 
 struct CustomerThread *CustomerThreadFactory(struct Customer *customer, 
-                                            pthread_t id)
+                                             pthread_t id)
 {
     struct CustomerThread *c = malloc(sizeof(struct CustomerThread));
     pthread_cond_init(&c->condition_id, NULL); 
@@ -34,10 +34,10 @@ void * CustomerRun(void *cus_info)
     pthread_mutex_t q_lock = mutex_list[cus->class_type];
 
     usleep(cus->arrival_time);
-    printf("A customer arrives: customer ID %2d. \n", cus->user_id);
     
-    pthread_mutex_lock(&q_lock);
+    printf("A customer arrives: customer ID %2d. \n", cus->user_id);
 
+    pthread_mutex_lock(&q_lock);
     printf("A customer enters a queue: the queue ID %1d, \
             and length of the queue %2d. \n", 
             cus->class_type, q->size+1);
@@ -45,9 +45,8 @@ void * CustomerRun(void *cus_info)
     //update arrival time to enque time
     gettimeofday(&t, NULL);
     cus->arrival_time = (t.tv_sec + (double) t.tv_usec / 1000000) - init_time;
-
+    
     QueueAdd((void *) thread_control, q);
-
     pthread_mutex_unlock(&q_lock);
 
     pthread_mutex_t lock;

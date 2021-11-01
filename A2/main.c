@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// initialize mutex for queues. 
-	// mutex_pool [1] is for queue regular write
-	// mutex_pool [2] is for queue vip write
-	// mutex_pool [3] is for queue regular read
-	// mutex_pool [4] is for queue vip write
-	for (i ^= i; i < 4; i++) {
+	// mutex_list [1] is for queue regular write
+	// mutex_list [2] is for queue vip write
+	// mutex_list [3] is for queue regular read
+	// mutex_list [4] is for queue vip write
+	for (int i = 0; i < 4; i++) {
 		if(pthread_mutex_init(&mutex_id, NULL)) {
 			fprintf(stderr, "mutex initialized failed\n");
 		}
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
 	// create clerk thread
 	clerk_pool = (struct Clerk **) malloc(sizeof(void *) * 5);
-	for (i ^= i; i < 5; i++) {
+	for (int i = 0; i < 5; i++) {
 		struct Clerk *c = ClerkFactory(i+1);
 
 		if(pthread_create(&id, NULL, &ClerkRun, c)){
@@ -60,8 +60,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//create customer thread
-	file_path = argv[1];
-	CustomerPool = FileParser(file_path);
+	CustomerPool = FileParser(argv[1]);
 	pthread_t id_list[ClientNum];
 	
 	struct timeval t;
@@ -70,7 +69,6 @@ int main(int argc, char *argv[]) {
 
 	i ^= i;
 	while((customer = CustomerPool[i++]) != NULL) {
-		// CustomerTest(customer);
 		if(pthread_create(&id, NULL, &CustomerRun, customer)){
 			fprintf(stderr, "customer thread creation failed, exit now\n");
 			exit(EXIT_FAILURE);
@@ -88,7 +86,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	exit(EXIT_SUCCESS);
-	return 0;
 }
 
 struct Customer ** FileParser(char* filepath) {

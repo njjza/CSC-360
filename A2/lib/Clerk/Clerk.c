@@ -13,14 +13,18 @@ void ClerkRunMain(struct Queue* q, unsigned int clerk_id) {
     double time;
     struct timeval t;
     struct CustomerThread *c;
+    struct Customer *cus;
+    pthread_mutex_t queue_lock;
 
     if(QueuePeek(q) == NULL) {return;}
 
     c = QueuePeek(q)->val;
-    c_id = c->customer->user_id;
-    
+    cus = c->customer;
+    c_id = cus->user_id;
+    queue_lock = mutex_list[c_id];
+
     gettimeofday(&t, NULL);
-     time = (t.tv_sec + (double) t.tv_usec / 1000000);
+    time = (t.tv_sec + (double) t.tv_usec / 1000000);
 
     printf("A clerk starts serving a customer: start time %.2f, \
             the customer ID %2d, the clerk ID %1d.\n",
@@ -28,20 +32,23 @@ void ClerkRunMain(struct Queue* q, unsigned int clerk_id) {
     );
 
     usleep(c->customer->service_time);
-    
     gettimeofday(&t, NULL);
+
+    if (pthread_cond_broadcast(&c->condition_id))
+    {
+        fprintf(stderr, "broadcast failed");
+        exit(EXIT_FAILURE);
+    }
+    
     time = (t.tv_sec + (double) t.tv_usec / 1000000);
     printf(">>>\tA clerk finishes serving a customer: end time %.2f, \
             the customer ID %2d, the clerk ID %1d. \n",
             (time - init_time), c_id, clerk_id
     );
 
+    pthread_mutex_lock(&queue_lock);
     free(QueuePop(q));
-    
-    if(pthread_cond_broadcast(&c->condition_id)) {
-        fprintf(stderr, "broadcast failed");
-        exit(EXIT_FAILURE);
-    }
+    pthread_mutex_unlock(&queue_lock);
 }
 
 void * ClerkRun(void *clerk_info) {
@@ -54,14 +61,14 @@ void * ClerkRun(void *clerk_info) {
     unsigned int id = clerk->clerk_id;
 
     while (1) {
-        if (!pthread_mutex_trylock(&mus[1])) {
+        if (!pthread_mutex_trylock(&mus[3])) {
             ClerkRunMain(q_high, id);
-            pthread_mutex_unlock(&mus[1]);
+            pthread_mutex_unlock(&mus[3]);
         }
         
-        else if(!pthread_mutex_trylock(&mus[0])) {
+        else if(!pthread_mutex_trylock(&mus[2])) {
             ClerkRunMain(q_low, id);
-            pthread_mutex_unlock(&mus[0]);
+            pthread_mutex_unlock(&mus[2]);
         }
     }
 
