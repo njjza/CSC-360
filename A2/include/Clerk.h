@@ -18,6 +18,7 @@ struct Clerk {
 extern double init_time;
 extern struct Queue **queue_list;
 extern pthread_mutex_t *mutex_list;
+extern FILE* out;
 
 struct Clerk * ClerkFactory(unsigned int id);
 void * ClerkRun(void *clerk_info);

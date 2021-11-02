@@ -24,6 +24,7 @@ struct CustomerThread {
 extern double init_time;
 extern struct Queue **queue_list;
 extern pthread_mutex_t *mutex_list;
+extern FILE* out;
 
 struct Customer *CustomerFactory(int id, int class, double arrival_time, double service_time);
 struct CustomerThread *CustomerThreadFactory(struct Customer *customer, pthread_t id);

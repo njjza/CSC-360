@@ -45,20 +45,27 @@ void QueueAdd(void *val, struct Queue *queue) {
 }
 struct Node * QueuePop(struct Queue * queue) {
     struct Node * n;
+    n = queue->head;
 
-    if(queue->size == 0) {
+    if (n == NULL) {
         return NULL;
     }
-    
-    n = queue->head;
-    queue -> head = n -> next;
-    queue -> size = queue -> size - 1;
+
+    if (n->next) 
+    {
+        queue->head = n->next;
+    }
+    else 
+    {
+        queue->head = NULL;
+        queue->tail = NULL;
+    }
+
+    queue->size = queue->size - 1;
 
     return n;
 }
 
 struct Node * QueuePeek(struct Queue * queue) {
-    struct Node * n = queue -> head;
-
-    return n;
+    return queue->head;
 }

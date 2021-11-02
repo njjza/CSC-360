@@ -35,10 +35,10 @@ void * CustomerRun(void *cus_info)
 
     usleep(cus->arrival_time);
     
-    printf("A customer arrives: customer ID %2d. \n", cus->user_id);
+    fprintf(out, "A customer arrives: customer ID %2d. \n", cus->user_id);
 
     pthread_mutex_lock(&q_lock);
-    printf("A customer enters a queue: the queue ID %1d, \
+    fprintf(out, "A customer enters a queue: the queue ID %1d, \
             and length of the queue %2d. \n", 
             cus->class_type, q->size+1);
     
@@ -47,18 +47,8 @@ void * CustomerRun(void *cus_info)
     cus->arrival_time = (t.tv_sec + (double) t.tv_usec / 1000000) - init_time;
     
     QueueAdd((void *) thread_control, q);
-    pthread_mutex_unlock(&q_lock);
 
-    pthread_mutex_t lock;
-    if (pthread_mutex_init(&lock, NULL) != 0){ //mutex initialization
-        printf("mutex init failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    pthread_cond_wait(&thread_control->condition_id, &lock);
-    printf("Client: %d finished\n", cus->user_id);
-    pthread_mutex_unlock(&lock);
-    
+    pthread_cond_wait(&thread_control->condition_id, &q_lock);
     return NULL;
 }
 

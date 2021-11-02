@@ -2,7 +2,9 @@
 #define QUEUE_H
 
 #include <stddef.h>
-#include "Clerk.h"
+#include <stdlib.h>
+#include <stdio.h>
+
 struct Node {
     void *val;
     struct Node *next;

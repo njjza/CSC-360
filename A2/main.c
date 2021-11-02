@@ -15,6 +15,7 @@ int ClientNum;
 double init_time;
 struct Queue **queue_list; // for external file usage;
 pthread_mutex_t *mutex_list; // for external file usage;
+FILE * out;
 
 int main(int argc, char *argv[]) {
 	char *file_path;
@@ -23,7 +24,7 @@ int main(int argc, char *argv[]) {
 	struct Customer **CustomerPool, *customer;
 	struct Clerk** clerk_pool;
 	struct Queue* queue_pool[2] = {QueueFactory(), QueueFactory()};
-	pthread_mutex_t mutex_id, mutex_pool[4];
+	pthread_mutex_t mutex_pool[4];
 
 	queue_list = queue_pool;
 	mutex_list = mutex_pool;
@@ -33,12 +34,16 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);	
 	}
 	
+	// out = fopen("./output/output.txt", "w");
+	out = stdout;
 	// initialize mutex for queues. 
 	// mutex_list [1] is for queue regular write
 	// mutex_list [2] is for queue vip write
 	// mutex_list [3] is for queue regular read
 	// mutex_list [4] is for queue vip write
 	for (int i = 0; i < 4; i++) {
+		pthread_mutex_t mutex_id;
+
 		if(pthread_mutex_init(&mutex_id, NULL)) {
 			fprintf(stderr, "mutex initialized failed\n");
 		}
