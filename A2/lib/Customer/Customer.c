@@ -13,43 +13,55 @@ struct Customer * CustomerFactory(  int id, int class, double arrival_time,
     return c;
 }
 
-struct CustomerThread *CustomerThreadFactory(struct Customer *customer, 
-                                             pthread_t id)
+void *CustomerRun(void *cus_info) 
 {
-    struct CustomerThread *c = malloc(sizeof(struct CustomerThread));
-    pthread_cond_init(&c->condition_id, NULL); 
-    c -> customer = customer;
-    c -> thread_id = id;
+    struct Customer *p_cus = cus_info;
+    struct Queue *p_queue = queue_list[p_cus->class_type];
+    pthread_mutex_t *p_queue_lock = &mutex_list[p_cus->class_type];
+    pthread_cond_t *p_queue_cond = &cond_list[p_cus->class_type];
 
-    return c;
-}
+    usleep(p_cus->arrival_time);
 
-void * CustomerRun(void *cus_info) 
-{
-    struct timeval t;
-    struct Customer *cus = cus_info;
-    struct CustomerThread *thread_control = 
-        CustomerThreadFactory(cus, pthread_self());
-    struct Queue *q = queue_list[cus->class_type];
-    pthread_mutex_t q_lock = mutex_list[cus->class_type];
-
-    usleep(cus->arrival_time);
+    fprintf(out, "A customer arrives: customer ID %2d. \n", p_cus->user_id);
     
-    fprintf(out, "A customer arrives: customer ID %2d. \n", cus->user_id);
-
-    pthread_mutex_lock(&q_lock);
-    fprintf(out, "A customer enters a queue: the queue ID %1d, \
-            and length of the queue %2d. \n", 
-            cus->class_type, q->size+1);
+    p_cus->arrival_time = GetCurrentTime();
     
+    printf("Customer ID: %d Class: %d is going to lock - start\n", 
+            p_cus->user_id, p_cus->class_type);
+    pthread_mutex_lock(p_queue_lock);
+    printf("Customer ID: %d Class: %d is locked - start\n", 
+            p_cus->user_id, p_cus->class_type);
+
+    // fprintf(out, "A customer enters a queue: the queue ID %1d, \
+    //         and length of the queue %2d. \n", 
+    //         p_cus->class_type, p_queue->size+1);
+    
+    QueueAdd((void *) p_cus, p_queue);
+
     //update arrival time to enque time
-    gettimeofday(&t, NULL);
-    cus->arrival_time = (t.tv_sec + (double) t.tv_usec / 1000000) - init_time;
-    
-    QueueAdd((void *) thread_control, q);
+    p_cus->arrival_time = GetCurrentTime();
 
-    pthread_cond_wait(&thread_control->condition_id, &q_lock);
-    return NULL;
+    // customer waiting for the line.
+    for(;;) {
+        if (QueuePeek(p_queue) == p_cus)
+        {
+            printf("Customer ID: %d Class: %d is going to unlock and locked - before wait\n", 
+                    p_cus->user_id, p_cus->class_type);
+            pthread_mutex_unlock(p_queue_lock);
+            pthread_cond_wait(p_queue_cond, p_queue_lock);
+            printf("Customer ID: %d Class: %d locked - after wait\n", 
+                    p_cus->user_id, p_cus->class_type);
+            break;
+        }
+    }
+    
+    printf("Customer ID: %d Class: %d is going to unlock - before exit\n", 
+            p_cus->user_id, p_cus->class_type);
+    pthread_mutex_unlock(p_queue_lock);
+    printf("Customer ID: %d Class: %d is unlocked - after exit\n\n", 
+            p_cus->user_id, p_cus->class_type);
+    
+    pthread_exit(NULL);
 }
 
 void CustomerTest( struct Customer * cus) 

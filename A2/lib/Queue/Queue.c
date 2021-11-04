@@ -43,7 +43,7 @@ void QueueAdd(void *val, struct Queue *queue) {
     QueueInsertBackEnd:
     queue -> size = queue -> size + 1;
 }
-struct Node * QueuePop(struct Queue * queue) {
+void * QueuePop(struct Queue * queue) {
     struct Node * n;
     n = queue->head;
 
@@ -63,9 +63,14 @@ struct Node * QueuePop(struct Queue * queue) {
 
     queue->size = queue->size - 1;
 
-    return n;
+    return n->val;
 }
 
-struct Node * QueuePeek(struct Queue * queue) {
-    return queue->head;
+void * QueuePeek(struct Queue * queue) {
+    if (queue->head == NULL)
+    {
+        return NULL;
+    }
+
+    return queue->head->val;
 }

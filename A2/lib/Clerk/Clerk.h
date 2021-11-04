@@ -4,8 +4,9 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "Customer.h"
-#include "Queue.h"
+#include "../Customer/Customer.h"
+#include "../Queue/Queue.h"
+#include "../CurrentTime/GetCurrentTime.h"
 
 typedef enum {IDLE, BUSY} ClerkStatus;
 

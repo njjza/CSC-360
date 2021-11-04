@@ -7,144 +7,131 @@
 #include "./include/Queue.h"
 #include "./include/Customer.h"
 #include "./include/Clerk.h"
+#include "./include/GetCurrentTime.h"
 
-struct Customer ** FileParser(char* filepath);
-void ** DynamicArrayAdd(void **pArray, void *val, int *size, int index);
+int FileParser(char *filepath, struct Customer ***result);
+void **DynamicArrayAdd(void **pArray, void *val, int *size, int index);
 
-int ClientNum;
+// global variables shared across multiple file
 double init_time;
-struct Queue **queue_list; // for external file usage;
-pthread_mutex_t *mutex_list; // for external file usage;
-FILE * out;
+struct Queue *queue_list[2];
+pthread_cond_t cond_list[2];
+pthread_mutex_t mutex_list[4];
+unsigned int queue_status[2];
+FILE *out;						 
 
-int main(int argc, char *argv[]) {
-	char *file_path;
-	int i;
-	pthread_t id;
-	struct Customer **CustomerPool, *customer;
-	struct Clerk** clerk_pool;
-	struct Queue* queue_pool[2] = {QueueFactory(), QueueFactory()};
-	pthread_mutex_t mutex_pool[4];
-
-	queue_list = queue_pool;
-	mutex_list = mutex_pool;
-
-	if(argc < 2) {
-		fprintf(stderr, "Incorrect input format, please attach input file link\n");
-		exit(EXIT_FAILURE);	
+int main(int argc, char *argv[])
+{
+	if (argc < 2) 
+	{
+		fprintf(stderr, "The number of arguments is incorrect\n");
+		exit(EXIT_FAILURE);
 	}
-	
-	// out = fopen("./output/output.txt", "w");
-	out = stdout;
-	// initialize mutex for queues. 
-	// mutex_list [1] is for queue regular write
-	// mutex_list [2] is for queue vip write
-	// mutex_list [3] is for queue regular read
-	// mutex_list [4] is for queue vip write
-	for (int i = 0; i < 4; i++) {
-		pthread_mutex_t mutex_id;
 
-		if(pthread_mutex_init(&mutex_id, NULL)) {
-			fprintf(stderr, "mutex initialized failed\n");
-		}
+	// initialize mutexes, conditions, queues, output stream
+	for(int i = 0; i < 2; i++)
+	{
+		pthread_cond_init(&cond_list[i], NULL);
+		pthread_mutex_init(&mutex_list[i], NULL);
+		pthread_mutex_init(&mutex_list[i+2], NULL);
+		queue_list[i] = QueueFactory();
+	}
 
-		mutex_pool[i] = mutex_id;
+	out = fopen("./output/output.txt", "w");
+
+	// create customer list
+	struct Customer **cus_list;
+	int cus_pool_size = FileParser(argv[1], &cus_list);
+
+	// create clerk list
+	struct Clerk *clerk_list[5];
+	for(int i = 0; i < 5; i++) {
+		clerk_list[i] = ClerkFactory(i + 1);
 	}
 
 	// create clerk thread
-	clerk_pool = (struct Clerk **) malloc(sizeof(void *) * 5);
-	for (int i = 0; i < 5; i++) {
-		struct Clerk *c = ClerkFactory(i+1);
-
-		if(pthread_create(&id, NULL, &ClerkRun, c)){
-			fprintf(stderr, "clerk thread creation failed, exit now\n");
-			exit(EXIT_FAILURE);
-		}
-		
-		clerk_pool[i] = c;
+	pthread_t clerk_pool[5];
+	for(int i = 0; i < 2; i++)
+	{
+		pthread_create(&clerk_pool[i], NULL, ClerkRun, clerk_list[i]);
 	}
 
-	//create customer thread
-	CustomerPool = FileParser(argv[1]);
-	pthread_t id_list[ClientNum];
-	
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	init_time = (t.tv_sec + (double) t.tv_usec / 1000000);
+	// start clock - for precision right before customer thread creation.
+	init_time = GetCurrentTime();
 
-	i ^= i;
-	while((customer = CustomerPool[i++]) != NULL) {
-		if(pthread_create(&id, NULL, &CustomerRun, customer)){
-			fprintf(stderr, "customer thread creation failed, exit now\n");
-			exit(EXIT_FAILURE);
-		}
-
-		id_list[i-1] = id;
-	}
-	
-	//prevent pre-mature termination
-	for(i ^= i; i < ClientNum; i++) {
-		if(pthread_join(id_list[i], NULL)){
-			fprintf(stderr, "thread creation failed, exit now\n");
-			exit(EXIT_FAILURE);
-		}
+	// create customer thread
+	pthread_t cus_pool[cus_pool_size];
+	for(int i = 0; i < cus_pool_size; i++)
+	{
+		pthread_create(&cus_pool[i], NULL, CustomerRun, (void *) cus_list[i]);
 	}
 
+	// prevent premature termination
+	for(int i = 0; i < cus_pool_size; i++)
+	{
+		if(pthread_join(cus_pool[i], NULL))
+		{
+			fprintf(stderr, "Thread Join error\n");	
+		};
+	}
+
+	fclose(out);
 	exit(EXIT_SUCCESS);
 }
 
-struct Customer ** FileParser(char* filepath) {
+int FileParser(char *filepath, struct Customer ***result)
+{
+	int i, id, type, len, li_size = 5;
+	long int arrival_time, process_time;
+	char buffer[256];
+	void **li = malloc(sizeof(struct Customer *) * li_size);
+	struct Customer *customer;
+
 	FILE *f = fopen(filepath, "r");
-	if (f == NULL) {
-		printf("incorrect file name\n");
+	if (f == NULL)
+	{
+		fprintf(stderr, "Incorrect file path\n");
 		exit(EXIT_FAILURE);
 	}
-	
-	int i;
-	char buffer[256];
-	struct Customer **li = malloc(sizeof(struct Customer *) * 5);
-	struct Customer *customer;
-	int id, type;
-	long int arrival_time, process_time;
-	int len, li_size = 5;
 
-	fgets(buffer, 256, f);	
+	fgets(buffer, 256, f);
 	len = atoi(buffer);
-	ClientNum = len;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		fgets(buffer, 256, f);
-		sscanf(	buffer, "%d:%d,%ld,%ld", 
-				&id, &type, &arrival_time, &process_time);
-		customer = CustomerFactory(	id, type, 
-									(double) arrival_time * 10000, 
-									(double) process_time * 10000);
+		sscanf(buffer, "%d:%d,%ld,%ld", &id, &type, &arrival_time, 
+			   &process_time);
 		
-		
-		li = (struct Customer **) DynamicArrayAdd(	(void **) li, 
-													(void *) customer, 
-								 					&li_size, i);
+		customer = CustomerFactory(id, type,
+								   (double)arrival_time * 100000,
+								   (double)process_time * 100000);
+
+		li = DynamicArrayAdd(li, (void *)customer, &li_size, i);
 	}
-	
-	li = (struct Customer **) DynamicArrayAdd((void **)li, NULL, 
-												&li_size, i);
 
 	fclose(f);
 
-	return li;
+	li = DynamicArrayAdd(li, NULL, &li_size, i);
+
+	*result = (struct Customer **) li;
+	return len;
 }
 
-void ** DynamicArrayAdd(void **pArray, void *val, int *size, int index) {
-	if(index >= *size) {
+void **DynamicArrayAdd(void **pArray, void *val, int *size, int index)
+{
+	if (index >= *size)
+	{
 		pArray = realloc(pArray, index * 2 * sizeof(struct Customer *));
-		if(pArray == NULL) {
-			printf("pArray reallocation failed\n");
+		if (pArray == NULL)
+		{
+			fprintf(stderr, "pArray reallocation failed\n");
 			exit(EXIT_FAILURE);
 		}
 
 		*size = index * 2;
 	}
-	
+
 	pArray[index] = val;
 	return pArray;
 }
