@@ -104,8 +104,9 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-// function entry for customer threads
 
+
+// function entry for customer threads
 void *customer_entry(void *cus_info)
 {
 	struct timeval time;
@@ -127,18 +128,12 @@ void *customer_entry(void *cus_info)
 				p_my_info->class_type, p_my_queue->size);
 	}
 
-	pthread_mutex_unlock(my_mutex);
-
-	while (TRUE)
+	pthread_cond_wait(my_cond, my_mutex);
+	
+	if (p_my_info == QueuePeek(p_my_queue)->val)	
 	{
-		pthread_cond_wait(my_cond, my_mutex);
-		
-		if (p_my_info == QueuePeek(p_my_queue)->val)	
-		{
-			sem_wait(&winner_selected[p_my_info->class_type]);
-			QueuePop(p_my_queue);
-			break;
-		}
+		sem_wait(&winner_selected[p_my_info->class_type]);
+		QueuePop(p_my_queue);
 	}
 
 	pthread_mutex_unlock(my_mutex); //unlock mutex_lock such that other customers can enter into the queue
@@ -146,7 +141,6 @@ void *customer_entry(void *cus_info)
 	/* Try to figure out which clerk awoken me, because you need to print the clerk Id information */
 	usleep(10);
 	int clerk_woke_me_up = queue_status[p_my_info->class_type];
-	queue_status[p_my_info->class_type] = 0;
 
 	/* get the current machine time; updates the overall_waiting_time*/
 	gettimeofday(&time, NULL);
@@ -178,16 +172,18 @@ void *customer_entry(void *cus_info)
 }
 
 void clerk_main(int queue_id, int clerk_id) {
-	queue_status[queue_id] = clerk_id; // The current clerk (clerkID) is signaling this queue
+	queue_status[queue_id] = clerk_id;
 
+	pthread_mutex_lock(&mutex_queue_write[queue_id]);
 	if(pthread_cond_broadcast(&cond_customer_type[queue_id])) 
 	{
 		printf("broadcast err\n");
 		exit(EXIT_FAILURE);
 	}
 
-	sem_post(&winner_selected[queue_id]); // set the initial value as the customer has not selected from the queue.
-	pthread_cond_wait(&cond_clerkcs[clerk_id], &mutex_void); // wait for the customer to finish its service
+	sem_post(&winner_selected[queue_id]);
+	pthread_cond_wait(&cond_clerkcs[clerk_id], &mutex_void);
+	pthread_mutex_unlock(&mutex_queue_write[queue_id]);
 }
 
 // function entry for clerk threads

@@ -1,7 +1,5 @@
 default: main
 
-include = ./include/
-
 Queue:
 	gcc -Wall ./lib/Queue/Queue.c -I./include -c -o ./bin/Queue.o -g 
 
