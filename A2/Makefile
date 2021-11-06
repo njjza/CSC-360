@@ -1,16 +1,16 @@
 default: main_debug
 
 Queue:
-	gcc -Wall ./lib/Queue/Queue.c -c -o ./bin/Queue.o -g 
+	gcc -Wall -I./include ./lib/Queue/Queue.c -c -o ./bin/Queue.o -g 
 
 Customer:
-	gcc -Wall ./lib/Customer/Customer.c -c -o ./bin/Customer.o -g
+	gcc -Wall -I./include ./lib/Customer/Customer.c -c -o ./bin/Customer.o -g
 
 Clerk:
-	gcc -Wall ./lib/Clerk/Clerk.c -I./include -c -o ./bin/Clerk.o -g
+	gcc -Wall -I./include ./lib/Clerk/Clerk.c -I./include -c -o ./bin/Clerk.o -g
 
 TIME:
-	gcc -Wall ./lib/CurrentTime/GetCurrentTime.c -c -o ./bin/GetCurrentTime.o -g
+	gcc -Wall -I./include ./lib/CurrentTime/GetCurrentTime.c -c -o ./bin/GetCurrentTime.o -g
 
 Main:
 	gcc -c -I./include ./main.c -DDEBUG -o ./bin/main.o -lm -g

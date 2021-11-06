@@ -17,24 +17,20 @@ void *CustomerRun(void *cus_info)
 {
     struct Customer *p_cus = cus_info;
     struct Queue *p_queue = queue_list[p_cus->class_type];
-    pthread_mutex_t *p_queue_lock = &mutex_list[p_cus->class_type];
-    pthread_cond_t *p_queue_cond = &cond_list[p_cus->class_type];
+    pthread_mutex_t *p_queue_lock = &queue_mutex_list[p_cus->class_type];
+    pthread_cond_t *p_queue_cond = &queue_cond_list[p_cus->class_type];
 
     usleep(p_cus->arrival_time);
 
     fprintf(out, "A customer arrives: customer ID %2d. \n", p_cus->user_id);
     
     p_cus->arrival_time = GetCurrentTime();
-    
-    printf("Customer ID: %d Class: %d is going to lock - start\n", 
-            p_cus->user_id, p_cus->class_type);
-    pthread_mutex_lock(p_queue_lock);
-    printf("Customer ID: %d Class: %d is locked - start\n", 
-            p_cus->user_id, p_cus->class_type);
 
-    // fprintf(out, "A customer enters a queue: the queue ID %1d, \
-    //         and length of the queue %2d. \n", 
-    //         p_cus->class_type, p_queue->size+1);
+    pthread_mutex_lock(p_queue_lock);
+
+    fprintf(out, "A customer enters a queue: the queue ID %1d, \
+            and length of the queue %2d. \n", 
+            p_cus->class_type, p_queue->size+1);
     
     QueueAdd((void *) p_cus, p_queue);
 
@@ -42,25 +38,19 @@ void *CustomerRun(void *cus_info)
     p_cus->arrival_time = GetCurrentTime();
 
     // customer waiting for the line.
-    for(;;) {
-        if (QueuePeek(p_queue) == p_cus)
+    for(;;) 
+    {
+        pthread_cond_wait(p_queue_cond, p_queue_lock);
+
+        if (queue_winner[p_cus->class_type] == p_cus)
         {
-            printf("Customer ID: %d Class: %d is going to unlock and locked - before wait\n", 
-                    p_cus->user_id, p_cus->class_type);
-            pthread_mutex_unlock(p_queue_lock);
-            pthread_cond_wait(p_queue_cond, p_queue_lock);
-            printf("Customer ID: %d Class: %d locked - after wait\n", 
-                    p_cus->user_id, p_cus->class_type);
             break;
         }
     }
-    
-    printf("Customer ID: %d Class: %d is going to unlock - before exit\n", 
-            p_cus->user_id, p_cus->class_type);
+
     pthread_mutex_unlock(p_queue_lock);
-    printf("Customer ID: %d Class: %d is unlocked - after exit\n\n", 
-            p_cus->user_id, p_cus->class_type);
     
+    return NULL;
     pthread_exit(NULL);
 }
 

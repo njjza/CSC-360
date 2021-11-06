@@ -17,9 +17,10 @@ struct Clerk {
 
 extern double init_time;
 extern struct Queue *queue_list[2];
-extern pthread_cond_t cond_list[2];
-extern pthread_mutex_t mutex_list[4];
-extern unsigned int queue_status[2];
+extern pthread_cond_t queue_cond_list[2];
+extern pthread_mutex_t queue_mutex_list[4];
+extern struct Customer *queue_winner[2];
+extern pthread_cond_t clerk_cond_list[5];
 extern FILE *out;
 
 struct Clerk * ClerkFactory(unsigned int id);

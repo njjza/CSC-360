@@ -180,7 +180,7 @@ void clerk_main(int queue_id, int clerk_id) {
 		printf("broadcast err\n");
 		exit(EXIT_FAILURE);
 	}
-
+	
 	sem_post(&winner_selected[queue_id]);
 	pthread_cond_wait(&cond_clerkcs[clerk_id], &mutex_void);
 	pthread_mutex_unlock(&mutex_queue_write[queue_id]);
