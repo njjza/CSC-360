@@ -7,7 +7,7 @@ Customer:
 	gcc -Wall -I./include ./lib/Customer/Customer.c -c -o ./bin/Customer.o -g
 
 Clerk:
-	gcc -Wall -I./include ./lib/Clerk/Clerk.c -I./include -c -o ./bin/Clerk.o -g
+	gcc -Wall -I./include ./lib/Clerk/Clerk.c -c -o ./bin/Clerk.o -g
 
 TIME:
 	gcc -Wall -I./include ./lib/CurrentTime/GetCurrentTime.c -c -o ./bin/GetCurrentTime.o -g

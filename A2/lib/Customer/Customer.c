@@ -17,6 +17,7 @@ void *CustomerRun(void *cus_info)
 {
     struct Customer *p_cus = cus_info;
     struct Queue *p_queue = queue_list[p_cus->class_type];
+    struct Clerk *server;
     pthread_mutex_t *p_queue_lock = &queue_mutex_list[p_cus->class_type];
     pthread_cond_t *p_queue_cond = &queue_cond_list[p_cus->class_type];
 
@@ -44,14 +45,16 @@ void *CustomerRun(void *cus_info)
 
         if (queue_winner[p_cus->class_type] == p_cus)
         {
+            server = queue_winner_server[p_cus->class_type];
             break;
         }
     }
 
+    pthread_cond_wait(&server->status, p_queue_lock);
     pthread_mutex_unlock(p_queue_lock);
-    
-    return NULL;
+
     pthread_exit(NULL);
+    return NULL;
 }
 
 void CustomerTest( struct Customer * cus) 

@@ -15,11 +15,12 @@ void **DynamicArrayAdd(void **pArray, void *val, int *size, int index);
 // global variables shared across multiple file
 double init_time;
 struct Queue *queue_list[2];
-pthread_cond_t queue_cond_list[2];
-pthread_mutex_t queue_mutex_list[4];
+struct Clerk *queue_winner_server[2];
 struct Customer *queue_winner[2];
-pthread_cond_t clerk_cond_list[5];
-FILE *out;			 
+pthread_cond_t queue_cond_list[2], clerk_cond_list[5];
+pthread_mutex_t queue_mutex_list[4];
+
+FILE *out;
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +51,8 @@ int main(int argc, char *argv[])
 	// create clerk list
 	struct Clerk *clerk_list[5];
 	for(int i = 0; i < 5; i++) {
-		clerk_list[i] = ClerkFactory(i + 1);
+		pthread_cond_init(&clerk_cond_list[i], NULL);
+		clerk_list[i] = ClerkFactory(i + 1, clerk_cond_list[i]);
 	}
 
 	// printf("msg2\n");

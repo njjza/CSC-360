@@ -9,6 +9,7 @@
 
 #include "GetCurrentTime.h"
 #include "Queue.h"
+#include "Clerk.h"
 
 struct Customer{ /// use this struct to record the customer information read from customers.txt
     int user_id;
@@ -25,10 +26,10 @@ struct CustomerThread {
 
 extern double init_time;
 extern struct Queue *queue_list[2];
-extern pthread_cond_t queue_cond_list[2];
-extern pthread_mutex_t queue_mutex_list[4];
+extern struct Clerk *queue_winner_server[2];
 extern struct Customer *queue_winner[2];
-extern pthread_cond_t clerk_cond_list[5];
+extern pthread_cond_t queue_cond_list[2], clerk_cond_list[5];
+extern pthread_mutex_t queue_mutex_list[4];
 extern FILE *out;
 
 struct Customer *CustomerFactory(int id, int class, double arrival_time, double service_time);
