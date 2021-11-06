@@ -20,9 +20,9 @@ TMP:
 
 main_debug: Queue Customer Clerk TIME Main
 	gcc ./bin/main.o ./bin/Customer.o ./bin/Clerk.o ./bin/Queue.o ./bin/GetCurrentTime.o -pthread -o ./build/main.exe -g
-	@read -p "Input file path is: " FILEPATH;\
-	echo "./build/main.exe ./input/$$FILEPATH.txt";\
-	./build/main.exe ./input/$$FILEPATH.txt
+	# @read -p "Input file path is: " FILEPATH;\
+	# echo "./build/main.exe ./input/$$FILEPATH.txt";\
+	# ./build/main.exe ./input/$$FILEPATH.txt
 
 main: Queue TMP
 	gcc ./bin/main.o ./bin/Queue.o -pthread -o ./build/main.exe -g

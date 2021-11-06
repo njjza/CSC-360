@@ -47,15 +47,12 @@ void *ClerkRun(void *clerk_info)
             continue;
         }
 
-        // wakeup correspond customer
-        pthread_mutex_lock(p_mutex_write);
-
-        cus_info = QueuePop(p_queue);
         *winner = cus_info;
         *server = clerk;
-        pthread_cond_signal(p_cond);
-
-        pthread_mutex_unlock(p_mutex_write);
+        pthread_cond_broadcast(p_cond);
+        
+        while(cus_info == QueuePeek(p_queue));
+        
         pthread_mutex_unlock(p_mutex_read);
 
         fprintf(out,

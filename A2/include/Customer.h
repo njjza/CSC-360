@@ -12,8 +12,8 @@
 #include "Clerk.h"
 
 struct Customer{ /// use this struct to record the customer information read from customers.txt
-    int user_id;
-	int class_type;
+    unsigned int user_id;
+	const unsigned int class_type;
 	double service_time;
 	double arrival_time;
 };
@@ -30,6 +30,8 @@ extern struct Clerk *queue_winner_server[2];
 extern struct Customer *queue_winner[2];
 extern pthread_cond_t queue_cond_list[2], clerk_cond_list[5];
 extern pthread_mutex_t queue_mutex_list[4];
+extern unsigned int queue_winner_server_status[2];
+
 extern FILE *out;
 
 struct Customer *CustomerFactory(int id, int class, double arrival_time, double service_time);

@@ -16,6 +16,8 @@ void **DynamicArrayAdd(void **pArray, void *val, int *size, int index);
 double init_time;
 struct Queue *queue_list[2];
 struct Clerk *queue_winner_server[2];
+unsigned int queue_winner_server_status[2] = {0, 0};
+
 struct Customer *queue_winner[2];
 pthread_cond_t queue_cond_list[2], clerk_cond_list[5];
 pthread_mutex_t queue_mutex_list[4];
@@ -82,6 +84,26 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Thread Join error\n");	
 		};
 	}
+
+	double t_all = 0, t_vip = 0, t_econ = 0;
+	struct Customer * c;
+	for (int i = 0; i < cus_pool_size; i++)
+	{
+		c = cus_list[i];
+		
+		printf("Class %d, Wait Time: %lf \n",c->class_type, c->arrival_time);
+		t_all	+=	c->arrival_time;
+		t_econ	+=	(c->class_type == 0) ? c->arrival_time : 0;
+		t_vip	+=	(c->class_type == 1) ? c->arrival_time : 0;
+	}
+
+	t_all /= cus_pool_size;
+	t_vip /= cus_pool_size;
+	t_econ /= cus_pool_size;
+
+	fprintf(out, "The average waiting time for all customers in the system is: %.2f seconds. \n", t_all);
+	fprintf(out, "The average waiting time for business-class customers in the system is: %.2f seconds. \n", t_vip);
+	fprintf(out, "The average waiting time for economic-class customers in the system is: %.2f seconds. \n", t_econ);
 
 	fclose(out);
 	exit(EXIT_SUCCESS);
