@@ -50,10 +50,3 @@ void *CustomerRun(void *cus_info)
     pthread_exit(NULL);
     return NULL;
 }
-
-void CustomerTest( struct Customer * cus) 
-{
-    printf("id: %d\t class: %d\t a.t: %ld\t p.t: %ld\n",
-        cus->user_id, cus->class_type, (long int) cus->arrival_time, (long int) cus->service_time
-    );
-}

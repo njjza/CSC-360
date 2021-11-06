@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 	}
 
 	double t_all = 0, t_vip = 0, t_econ = 0;
+	int n_econ = 0, n_vip = 0;
 	struct Customer * c;
 	for (int i = 0; i < cus_pool_size; i++)
 	{
@@ -93,13 +94,21 @@ int main(int argc, char *argv[])
 		
 		printf("Class %d, Wait Time: %lf \n",c->class_type, c->arrival_time);
 		t_all	+=	c->arrival_time;
-		t_econ	+=	(c->class_type == 0) ? c->arrival_time : 0;
-		t_vip	+=	(c->class_type == 1) ? c->arrival_time : 0;
+		if (c->class_type == 0)
+		{
+			t_econ += c->arrival_time;
+			n_econ++;
+		}
+		else
+		{
+			t_vip += c->arrival_time;
+			n_vip++;
+		}
 	}
 
 	t_all /= cus_pool_size;
-	t_vip /= cus_pool_size;
-	t_econ /= cus_pool_size;
+	t_vip /= n_vip;
+	t_econ /= n_econ;
 
 	fprintf(out, "The average waiting time for all customers in the system is: %.2f seconds. \n", t_all);
 	fprintf(out, "The average waiting time for business-class customers in the system is: %.2f seconds. \n", t_vip);

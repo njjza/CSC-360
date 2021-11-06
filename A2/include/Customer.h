@@ -35,9 +35,6 @@ extern unsigned int queue_winner_server_status[2];
 extern FILE *out;
 
 struct Customer *CustomerFactory(int id, int class, double arrival_time, double service_time);
-struct CustomerThread *CustomerThreadFactory(struct Customer *customer, pthread_t id);
 void * CustomerRun(void *cus_info);
-void CustomerPrint( struct Customer * cus);
 
-void CustomerTest( struct Customer * cus);
 #endif
