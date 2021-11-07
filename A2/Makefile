@@ -1,10 +1,11 @@
-all: check_directory main Queue Customer Clerk TIME Main clean
+all: main Queue Customer Clerk TIME Main clean
 .PHONY: all 
 
 main: Queue Customer Clerk TIME Main
-	gcc ./bin/main.o ./bin/Customer.o ./bin/Clerk.o ./bin/Queue.o ./bin/GetCurrentTime.o -pthread -o ./build/main.exe -g
+	gcc ./bin/main.o ./bin/Customer.o ./bin/Clerk.o ./bin/Queue.o ./bin/GetCurrentTime.o -pthread -o ./build/ACS -g
 	@read -p "Input file path is: " FILEPATH;\
-	echo "./build/main.exe $$FILEPATH";\
+	echo "./build/ACS $$FILEPATH";\
+	./build/ACS $$FILEPATH;
 
 Queue:
 	gcc -Wall -I./include ./lib/Queue/Queue.c -c -o ./bin/Queue.o -g 
@@ -23,4 +24,4 @@ Main:
 
 clean:
 	rm ./bin/*.o
-	rm ./build/*.exe
+	rm ./build/*

@@ -26,7 +26,7 @@ FILE *out;
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2)
+	if (argc != 2)
 	{
 		fprintf(stderr, "The number of arguments is incorrect\n");
 		exit(EXIT_FAILURE);
