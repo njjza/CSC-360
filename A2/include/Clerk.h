@@ -9,7 +9,8 @@
 
 struct Clerk {
     unsigned int clerk_id;
-    pthread_cond_t status;
+    unsigned int condition;
+    pthread_cond_t convar;
 };
 
 /* Global variables shared across files */

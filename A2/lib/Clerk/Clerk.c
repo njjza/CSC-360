@@ -4,8 +4,8 @@ struct Clerk *ClerkFactory(unsigned int id, pthread_cond_t cond)
 {
     struct Clerk *clerk = malloc(sizeof(struct Clerk));
     clerk->clerk_id = id;
-    clerk->status = cond;
-
+    clerk->convar = cond;
+    clerk->condition = 0;
     return clerk;
 }
 
@@ -45,7 +45,7 @@ void *ClerkRun(void *clerk_info)
             pthread_mutex_unlock(p_mutex_read);
             continue;
         }
-
+        clerk->condition = 0;
         *winner = cus_info;
         *server = clerk;
         
@@ -72,8 +72,11 @@ void *ClerkRun(void *clerk_info)
                 the customer ID %2d, the clerk ID %1d. \n",
                 (GetCurrentTime() - init_time), cus_info->user_id,
                 id);
-
-        pthread_cond_broadcast(&clerk->status);
+        
+        pthread_mutex_lock(p_mutex_read);
+        clerk->condition = 1;
+        pthread_mutex_unlock(p_mutex_read);
+        pthread_cond_broadcast(&clerk->convar);
     }
 
     return NULL;

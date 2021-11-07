@@ -45,7 +45,10 @@ void *CustomerRun(void *cus_info)
     server = queue_winner_server[class];
     QueuePop(p_queue);
 
-    pthread_cond_wait(&server->status, p_queue_lock);
+    while (!server->condition)
+    {
+        pthread_cond_wait(&server->convar, p_queue_lock);
+    }
     pthread_mutex_unlock(p_queue_lock);
     pthread_exit(NULL);
     return NULL;

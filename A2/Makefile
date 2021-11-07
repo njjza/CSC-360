@@ -23,5 +23,5 @@ Main:
 	gcc -c -I./include ./main.c -DDEBUG -o ./bin/main.o -lm -g
 
 clean:
-	rm ./bin/*.o
-	rm ./build/*
+	@rm ./bin/*.o;
+	@rm ./build/*;
