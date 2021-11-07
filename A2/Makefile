@@ -1,4 +1,10 @@
-default: main_debug
+all: check_directory main Queue Customer Clerk TIME Main clean
+.PHONY: all 
+
+main: Queue Customer Clerk TIME Main
+	gcc ./bin/main.o ./bin/Customer.o ./bin/Clerk.o ./bin/Queue.o ./bin/GetCurrentTime.o -pthread -o ./build/main.exe -g
+	@read -p "Input file path is: " FILEPATH;\
+	echo "./build/main.exe $$FILEPATH";\
 
 Queue:
 	gcc -Wall -I./include ./lib/Queue/Queue.c -c -o ./bin/Queue.o -g 
@@ -15,19 +21,6 @@ TIME:
 Main:
 	gcc -c -I./include ./main.c -DDEBUG -o ./bin/main.o -lm -g
 
-TMP:
-	gcc -c -I./include ./tmp.c -DDEBUG -o ./bin/main.o -lm -g
-
-main_debug: Queue Customer Clerk TIME Main
-	gcc ./bin/main.o ./bin/Customer.o ./bin/Clerk.o ./bin/Queue.o ./bin/GetCurrentTime.o -pthread -o ./build/main.exe -g
-	# @read -p "Input file path is: " FILEPATH;\
-	# echo "./build/main.exe ./input/$$FILEPATH.txt";\
-	# ./build/main.exe ./input/$$FILEPATH.txt
-
-main: Queue TMP
-	gcc ./bin/main.o ./bin/Queue.o -pthread -o ./build/main.exe -g
-	# gdb ./build/main.exe
-	# run a
-	# @read -p "Input file path is: " FILEPATH;\
-	# echo "./build/main.exe ./input/$$FILEPATH.txt";\
-	./build/main.exe ./input/input0.txt
+clean:
+	rm ./bin/*.o
+	rm ./build/*.exe

@@ -6,7 +6,7 @@ struct Node *NodeFactory(void *val)
     struct Node *n = (struct Node *)malloc(sizeof(struct Node));
     if (!n)
     {
-        printf("Node Malloc Failed\n");
+        fprintf(stderr, "Node Malloc Failed\n");
         exit(1);
     }
 
@@ -21,7 +21,7 @@ struct Queue *QueueFactory()
     struct Queue *q = (struct Queue *)malloc(sizeof(struct Queue));
     if (!q)
     {
-        printf("Queue Malloc Failed\n");
+        fprintf(stderr, "Queue Malloc Failed\n");
         exit(1);
     }
 
@@ -40,7 +40,7 @@ void QueueAdd(void *val, struct Queue *queue)
     struct Node *n_tail = queue->tail;
     struct Node *n_tmp = NodeFactory(val);
 
-    if (n_tail == NULL)
+    if (n_tail == NULL || queue->head == NULL)
     {
         queue->tail = n_tmp;
         queue->head = n_tmp;
@@ -87,7 +87,9 @@ void *QueuePop(struct Queue *queue)
 void *QueuePeek(struct Queue *queue)
 {
     pthread_mutex_lock(&mutex);
+    
     void * result;
+    
     if (queue->head == NULL)
     {
         pthread_mutex_unlock(&mutex);

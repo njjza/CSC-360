@@ -31,8 +31,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "The number of arguments is incorrect\n");
 		exit(EXIT_FAILURE);
 	}
-
-	// printf("msg1\n");
+	
 	// initialize queues, and its mutexes, conditions
 	for(int i = 0; i < 2; i++)
 	{
@@ -57,7 +56,6 @@ int main(int argc, char *argv[])
 		clerk_list[i] = ClerkFactory(i + 1, clerk_cond_list[i]);
 	}
 
-	// printf("msg2\n");
 	// create clerk thread
 	pthread_t clerk_pool[5];
 	for(int i = 0; i < 5; i++)
@@ -68,7 +66,6 @@ int main(int argc, char *argv[])
 	// start clock - for precision right before customer thread creation.
 	init_time = GetCurrentTime();
 
-	// printf("msg3\n");
 	// create customer thread
 	pthread_t cus_pool[cus_pool_size];
 	for(int i = 0; i < cus_pool_size; i++)
@@ -85,14 +82,13 @@ int main(int argc, char *argv[])
 		};
 	}
 
+	// calculate and printout average customer's watiing time.
 	double t_all = 0, t_vip = 0, t_econ = 0;
 	int n_econ = 0, n_vip = 0;
 	struct Customer * c;
 	for (int i = 0; i < cus_pool_size; i++)
 	{
 		c = cus_list[i];
-		
-		printf("Class %d, Wait Time: %lf \n",c->class_type, c->arrival_time);
 		t_all	+=	c->arrival_time;
 		if (c->class_type == 0)
 		{
@@ -114,10 +110,35 @@ int main(int argc, char *argv[])
 	fprintf(out, "The average waiting time for business-class customers in the system is: %.2f seconds. \n", t_vip);
 	fprintf(out, "The average waiting time for economic-class customers in the system is: %.2f seconds. \n", t_econ);
 
+	// destroy all mutexes, convar, malloced ds
+	free(queue_list[0]);
+	free(queue_winner_server[0]);
+	free(queue_winner[0]);
+
+	for(int i = 0; i < 2; i++)
+	{
+		pthread_cond_destroy(&queue_cond_list[i]);
+		pthread_cond_destroy(&clerk_cond_list[i]);
+		pthread_cond_destroy(&clerk_cond_list[i + 2]);
+		pthread_mutex_destroy(&queue_mutex_list[i]); 
+		pthread_mutex_destroy(&queue_mutex_list[i + 2]);
+	}
+
+	pthread_cond_destroy(&clerk_cond_list[4]);
+
 	fclose(out);
 	exit(EXIT_SUCCESS);
 }
 
+/**
+ * Function Name: File Parser
+ * Input		: char *filepath, struct Customer ***result
+ * Return		: int
+ * Description	: This function is to create customers based on the input
+ * 				  from argv. The result in the parameter are used to carry
+ * 				  newly created customer list. The function will have
+ *                the size of the customer returned in integer.
+**/
 int FileParser(char *filepath, struct Customer ***result)
 {
 	int i, id, type, len, li_size = 5;
@@ -133,12 +154,21 @@ int FileParser(char *filepath, struct Customer ***result)
 		exit(EXIT_FAILURE);
 	}
 
-	fgets(buffer, 256, f);
+	if(fgets(buffer, 256, f) == NULL)
+	{
+		fprintf(stderr, "fgets error");
+		exit(EXIT_FAILURE);
+	}
 	len = atoi(buffer);
 
 	for (i = 0; i < len; i++)
 	{
-		fgets(buffer, 256, f);
+		if (fgets(buffer, 256, f) == NULL)
+		{
+			fprintf(stderr, "fgets error");
+			exit(EXIT_FAILURE);
+		}
+		
 		sscanf(buffer, "%d:%d,%ld,%ld", &id, &type, &arrival_time, 
 			   &process_time);
 		
@@ -157,6 +187,13 @@ int FileParser(char *filepath, struct Customer ***result)
 	return len;
 }
 
+/**
+ * Function Name: DynamicArrayAdd
+ * Input		: void **pArray, void *val, int *size, int index
+ * Return		: void **
+ * Description	: This function is to add an element to an array
+ * 				  with dynamic memory reallocation.
+**/
 void **DynamicArrayAdd(void **pArray, void *val, int *size, int index)
 {
 	if (index >= *size)

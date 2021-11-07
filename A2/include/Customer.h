@@ -13,17 +13,12 @@
 
 struct Customer{ /// use this struct to record the customer information read from customers.txt
     unsigned int user_id;
-	const unsigned int class_type;
+	unsigned int class_type;
 	double service_time;
 	double arrival_time;
 };
 
-struct CustomerThread {
-	struct Customer *customer;
-	pthread_t thread_id;
-	pthread_cond_t condition_id;
-};
-
+/* Global variables shared accross files*/
 extern double init_time;
 extern struct Queue *queue_list[2];
 extern struct Clerk *queue_winner_server[2];
@@ -34,7 +29,25 @@ extern unsigned int queue_winner_server_status[2];
 
 extern FILE *out;
 
+/**
+ *  Function Name   : CustomerFactory
+ *  Input           : int id				the unique number identifies the customer
+ * 					  int class, 			the class (economy/business) of the customer
+ *                    double arrival_time, 	time it takes to arrive airport
+ *                    double service_time	time it takes to finish check-in procedural
+ *  Return          : struct Customer *
+ *  Description     : A constructor function that is to create a
+ * 					  a customer struct using malloc.
+**/
 struct Customer *CustomerFactory(int id, int class, double arrival_time, double service_time);
+
+/**
+ *  Function Name   : CustomerFactory
+ *  Input           : void *cus_info		customer information
+ *  Return          : struct Customer *
+ *  Description     : The main function for customer data type, the logic
+ * 					  behind every customer in this simulation
+**/
 void * CustomerRun(void *cus_info);
 
 #endif

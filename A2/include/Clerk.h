@@ -12,6 +12,7 @@ struct Clerk {
     pthread_cond_t status;
 };
 
+/* Global variables shared across files */
 extern double init_time;
 extern struct Queue *queue_list[2];
 extern struct Clerk *queue_winner_server[2];

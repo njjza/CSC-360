@@ -16,7 +16,7 @@ void *ClerkRun(void *clerk_info)
     struct Queue *p_queue;
     unsigned int id = clerk->clerk_id, class;
 
-    pthread_mutex_t *p_mutex_read, *p_mutex_write;
+    pthread_mutex_t *p_mutex_read;
     pthread_cond_t *p_cond;
 
     while (1)
@@ -36,7 +36,6 @@ void *ClerkRun(void *clerk_info)
 
         p_queue = queue_list[class];
         p_mutex_read = &queue_mutex_list[class + 2];
-        p_mutex_write = &queue_mutex_list[class];
         p_cond = &queue_cond_list[class];
         winner = &queue_winner[class];
         server = &queue_winner_server[class];
@@ -49,15 +48,17 @@ void *ClerkRun(void *clerk_info)
 
         *winner = cus_info;
         *server = clerk;
-        pthread_cond_broadcast(p_cond);
         
-        while(cus_info == QueuePeek(p_queue));
+        while(cus_info == QueuePeek(p_queue))
+        {
+            pthread_cond_broadcast(p_cond);
+        }
         
         pthread_mutex_unlock(p_mutex_read);
 
         fprintf(out,
                 "A clerk starts serving a customer: start time %.2f, \
-            the customer ID %2d, the clerk ID %1d. \n",
+                the customer ID %2d, the clerk ID %1d. \n",
                 (GetCurrentTime() - init_time), cus_info->user_id,
                 id);
 
@@ -68,11 +69,11 @@ void *ClerkRun(void *clerk_info)
 
         fprintf(out,
                 "A clerk finishes serving a customer: end time %.2f, \
-            the customer ID %2d, the clerk ID %1d. \n",
+                the customer ID %2d, the clerk ID %1d. \n",
                 (GetCurrentTime() - init_time), cus_info->user_id,
                 id);
 
-        pthread_cond_signal(&clerk->status);
+        pthread_cond_broadcast(&clerk->status);
     }
 
     return NULL;
