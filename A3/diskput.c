@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
     }
 
     unsigned long int free_mem = GetFreeMemorySize(char_ptr);
-    if(free_mem - buffer.st_size < 0)
+    if(free_mem < buffer.st_size)
     {
         fprintf(stdout, "Not enough space to write the file\n");
         exit(EXIT_SUCCESS);
@@ -151,26 +151,27 @@ unsigned int GetEntryVal(char *ptr, unsigned int entry_val)
     
     if (entry_val % 2 == 0)
     {
-        tmp1 = ptr[bytes_per_sector + (3 * entry_val) / 2 + 1] & 0x0f;
-        tmp0 = ptr[bytes_per_sector + (3 * entry_val) / 2] & 0xff;
+        tmp1 = ptr[bytes_per_sector + ((3 * entry_val) / 2) + 1] & 0x0f;
+        tmp0 = ptr[bytes_per_sector + ((3 * entry_val) / 2)] & 0xff;
         tmp = (tmp1 << 8) | tmp0;
     }
     else
     {
-        tmp1 = ptr[bytes_per_sector + (3 * entry_val) / 2] & 0xF0; 
-        tmp0 = ptr[bytes_per_sector + (3 * entry_val) / 2 + 1] & 0xFF;
+        tmp1 = ptr[bytes_per_sector + ((3 * entry_val) / 2)] & 0xF0; 
+        tmp0 = ptr[bytes_per_sector + ((3 * entry_val) / 2 + 1)] & 0xFF;
         tmp = (tmp1 >> 4) | (tmp0 << 4);
     }
 
     return tmp;
 }
+
 unsigned int GetFreeEntryVal(char *ptr)
 {
     unsigned int num_of_sector = (unsigned int) (ptr[0x13 + 1] << 8 | ptr[0x13]); 
     
     for(int i = 0; i < num_of_sector; i++)
     {
-        if(GetEntryVal(ptr, i) == 0x00)
+        if(GetEntryVal(ptr, i) == 0x000)
         {
             return i;
         }
@@ -179,26 +180,26 @@ unsigned int GetFreeEntryVal(char *ptr)
     return -1;
 }
 
-void SetEntryVal(char *ptr, unsigned int cur_entry, unsigned int next_entry)
+void SetEntryVal(char *ptr, int cur_entry, int next_entry)
 {
     unsigned int bytes_per_sector = (ptr[0x0B + 1] << 8 | ptr[0x0B]);
 
     if(cur_entry % 2 == 0)
     {
-        ptr[bytes_per_sector + (3 * cur_entry) / 2 + 1] = (
+        ptr[bytes_per_sector + ((3 * cur_entry) / 2) + 1] = (
             (next_entry >> 8) & 0x0F
         );
-        ptr[bytes_per_sector + (3 * cur_entry) / 2] = (
-            ((next_entry) & 0xFF) | (ptr[bytes_per_sector + 1 + 3 * cur_entry / 2] & 0xF0)
+        ptr[bytes_per_sector + ((3 * cur_entry) / 2)] = (
+            ((next_entry) & 0xFF)
         );
     }
     else
     {
-        ptr[bytes_per_sector + (3 * cur_entry) / 2 + 1] = (
+        ptr[bytes_per_sector + ((3 * cur_entry) / 2) + 1] = (
             (next_entry >> 4) & 0xff
         );
-        ptr[bytes_per_sector + (3 * cur_entry) / 2] = (
-            ((next_entry << 4) & 0xF0) | (ptr[bytes_per_sector + 3 * cur_entry / 2] & 0x0F)
+        ptr[bytes_per_sector + ((3 * cur_entry) / 2)] = (
+            (next_entry << 4) & 0xF0
         );
     }
 }
@@ -275,7 +276,7 @@ char * SetDirectoryEntry(char* root, char *dir, struct stat *file, char *name, i
     dir[15] = (time_val >> 8) & 0xff;
 
     // set directory first logic cluster
-    unsigned int entry = GetFreeEntryVal(root);
+    unsigned int entry = GetFreeEntryVal(root) & 0xfff;
     SetEntryVal(root, entry, 0xff0);
     dir[26] = entry & 0xff;
     dir[27] = (entry & 0xff00) >> 8;
@@ -294,32 +295,34 @@ void WriteFileToDisk(char *disk_dest, char *disk_dir_entry, char *file_src, int 
 {
     int file_size = size;
     unsigned int entry_val = (disk_dir_entry[26] & 0xff) | (disk_dir_entry[27] & 0xff) << 8;
-    unsigned int next_entry; 
+    unsigned int next_entry;
 
-    do
-    {   
-        file_size -= 512;
+    while(file_size > 0)
+    {
         char *dest = disk_dest + (33 + entry_val - 2) * 512;
         
-        if(file_size >= 0)
+        SetEntryVal(disk_dest, entry_val, 0xff0);
+        
+        if(file_size > 512)
         {
-            for(int i = 0; i < 512; i++)
+            for(int i =0; i < 512; i++)
                 dest[i] = *file_src++;
 
+            file_size -= 512;
             next_entry = GetFreeEntryVal(disk_dest);
-            SetEntryVal(disk_dest, entry_val, next_entry);
         }
         else
         {
-            for(int i = 0; i < file_size + 512; i++)
+            for(int i = 0; i < file_size; i++)
                 dest[i] = *file_src++;
-            
-            SetEntryVal(disk_dest, entry_val, 0xfff);
+
+            SetEntryVal(disk_dest, entry_val, 0xff9);
+            break;
         }
 
+        SetEntryVal(disk_dest, entry_val, next_entry);
         entry_val = next_entry;
-
-    } while (file_size > 0);   
+    } 
 }
 
 char * GetFileName(char * file_entry)

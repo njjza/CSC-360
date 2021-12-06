@@ -11,7 +11,7 @@
 
 char * GetFileName(char * file_entry);
 int WriteFromMemToFile(
-    char *root, FILE *f, unsigned int entry_val, unsigned int file_size
+    char *root, FILE *f, unsigned int entry_val, int file_size
 );
 
 int main(int argc, char *argv[])
@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
         tmp += 32;
     }
 
-    printf("%d\n", flag);
     if(flag)
     {
         fprintf(stderr, "%s does not exist at root directory of %s\n", argv[2], argv[1]);
@@ -101,7 +100,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int GetEntryValue(char *root, int entry_val)
+unsigned int GetEntryValue(char *root, int entry_val)
 {
     int tmp1, tmp0, res;
 
@@ -122,41 +121,30 @@ int GetEntryValue(char *root, int entry_val)
 }
 
 int WriteFromMemToFile(
-    char *root, FILE *f, unsigned int entry_val, unsigned int file_size
+    char *root, FILE *f, unsigned int entry_val, int file_size
 )
 {
-    size_t write_error_check;
-
     do
     {   
-        file_size -= 512;
         char *src = &root[(33 + entry_val - 2) * 512];
-        if(file_size >= 0)
+        
+        if(file_size > 512)
         {
-            write_error_check = fwrite(src, sizeof(char), 512, f);
+            fwrite(src, sizeof(char), 512, f);
         }
         else
         {
-            write_error_check = fwrite(src, sizeof(char), file_size + 512, f);
+            fwrite(src, sizeof(char), file_size, f);
         }
 
-        if(write_error_check == 0)
-        {
-            return 1;
-        }
-
+        printf("%.3x\t%.3x\n", 0xfff, entry_val & 0xfff);
         entry_val = GetEntryValue(root, entry_val) & 0xfff;
+        file_size -= 512;
 
-    } while (entry_val < 0xff8);
+    } while (entry_val < 0xff8 && file_size > 0);
     
     return 0;
 }
-
-int FileCopy(char * src, char *dest, int file_size)
-{
-    return 0;
-}
-
 
 char * GetFileName(char * file_entry)
 {

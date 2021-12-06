@@ -169,7 +169,7 @@ unsigned int GetNumFile(char *root, char *file, int counter_l)
         else if(subdirectory_flag && !dot_file_flag && !volume_flag)
         {
             int entry_val = (file[26] & 0xff) + ((file[27] & 0xff) << 8);
-            res += GetNumFile(root, root + (33 + first_logc - 2) * 512 + 32, 16);
+            res += GetNumFile(root, root + (33 + first_logc - 2) * 512 + 32, 0xffff);
         }
 
         file += 32;
